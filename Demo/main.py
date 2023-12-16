@@ -1,16 +1,17 @@
-import pandas as pd
-
 from superpowered import create_chat_thread, get_chat_response, set_api_key
 from dotenv import load_dotenv
+import os
 import streamlit as st
 
-from pprint import pprint
+
+load_dotenv()
 
 # superpowered api key
-set_api_key("server_b24a7ca2ed40417e09ee306d7f991bea", "K1cynzVq70rFf74CV0YwvAbxudDxYcepUnUE7dP4mZM")
+set_api_key(os.getenv("SUPERPOWERED_KEY"),
+            os.getenv("SUPERPOWERED_PASS"))
 
 # set parameters
-kb_id = 'eeb52ed0-c064-407b-a3a1-83ce50d8114a'
+kb_id = os.getenv("KNOWLEDGEBASE_ID")
 use_rse = True
 segment_length = "medium"
 system_message = (
@@ -19,12 +20,14 @@ system_message = (
     "Do not answer questions that are not about the PennLabs notion pages.\n\n"
 )
 
-# create chat thread
-chat_thread = create_chat_thread(knowledge_base_ids=[kb_id], use_rse=use_rse, model="gpt-3.5-turbo", segment_length=segment_length, system_message=system_message)
-chat_thread_id = chat_thread['id']
-print (f"Chat thread created with ID: {chat_thread_id}")
+# # create chat thread
+# chat_thread = create_chat_thread(knowledge_base_ids=[
+#                                  kb_id], use_rse=use_rse, model="gpt-3.5-turbo", segment_length=segment_length, system_message=system_message)
+# chat_thread_id = chat_thread['id']
+# print(f"Chat thread created with ID: {chat_thread_id}")
 
-def generate_chatbot_response(chat_thread_id:str, user_message: str) -> str:
+
+def generate_chatbot_response(chat_thread_id: str, user_message: str) -> str:
     """
     Generate a chatbot response using the Superpowered AI
 
@@ -35,12 +38,12 @@ def generate_chatbot_response(chat_thread_id:str, user_message: str) -> str:
         str: Chatbot response
     """
 
-     # get AI response
+    # get AI response
     print(chat_thread_id)
     chat_response = get_chat_response(chat_thread_id, user_message)
     chat_response = chat_response["interaction"]["model_response"]["content"]
     return chat_response
-    
+
 
 def handle_style_and_responses(chat_history):
     human_style = "background-color: #e6f7ff; border-radius: 10px; padding: 10px;"
@@ -51,9 +54,11 @@ def handle_style_and_responses(chat_history):
         style = human_style if role == "User" else chatbot_style
 
         st.markdown(
-            f"<p style='text-align: {alignment};'><b>{role}</b></p> <p style='text-align: {alignment};{style}'> <i>{message}</i> </p>",
+            f"<p style='text-align: {alignment};'><b>{role}</b></p> <p style='text-align: {
+                alignment};{style}'> <i>{message}</i> </p>",
             unsafe_allow_html=True,
         )
+
 
 def main():
     load_dotenv()
@@ -64,12 +69,12 @@ def main():
         st.session_state.chat_history = []
 
     st.set_page_config(
-        page_title="Chatbot",
+        page_title="Bren",
         page_icon=":books:",
     )
 
-    st.title("Chatbot")
-    st.subheader("Chat with upenn.edu!")
+    st.title("Bren")
+    st.subheader("Chat with your knowledge base!")
 
     user_question = st.text_input("Ask your question")
 
@@ -77,12 +82,15 @@ def main():
         if user_question:
             if st.session_state.chat_thread_id is None:
                 # Create a new chat thread for the first question
-                chat_thread = create_chat_thread(knowledge_base_ids=[kb_id], use_rse=use_rse, model="gpt-3.5-turbo", segment_length=segment_length, system_message=system_message)
+                chat_thread = create_chat_thread(knowledge_base_ids=[
+                                                 kb_id], use_rse=use_rse, model="gpt-3.5-turbo", segment_length=segment_length, system_message=system_message)
                 st.session_state.chat_thread_id = chat_thread['id']
-                st.write(f"Chat thread created with ID: {st.session_state.chat_thread_id}")
+                st.write(f"Chat thread created with ID: {
+                         st.session_state.chat_thread_id}")
 
             # Get chatbot response for the current question
-            chatbot_response = generate_chatbot_response(st.session_state.chat_thread_id, user_question)
+            chatbot_response = generate_chatbot_response(
+                st.session_state.chat_thread_id, user_question)
 
             # Update the chat history
             st.session_state.chat_history.append(("User", user_question))
@@ -90,6 +98,7 @@ def main():
 
             # Display the entire conversation
             handle_style_and_responses(st.session_state.chat_history)
+
 
 if __name__ == "__main__":
     main()
